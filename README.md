@@ -5,3 +5,7 @@
 Now with an automatic darkmode. Now available directly through Firefox https://addons.mozilla.org/en-US/firefox/addon/volume-control-boost-volume/
 
 Supports HTML5 video and audio only (no Flash).
+
+Future goals:
+Support more formats
+Merge Youtube audio [currently playback breaks when clicking volumecontrol while playing youtube audio via the youtube audio extension.]
