@@ -6,6 +6,6 @@ Now with an automatic darkmode. Now available directly through Firefox https://a
 
 Supports HTML5 video and audio only (no Flash).
 
-Future goals:
-Support more formats
+Future goals:<br>
+Support more formats<br>
 Merge Youtube audio [currently playback breaks when clicking volumecontrol while playing youtube audio via the youtube audio extension.]
