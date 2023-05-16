@@ -46,10 +46,16 @@ function listenForEvents() {
 
   const text = document.querySelector("#volume-text");
   let cursorPosition = 0;
-  
-  text.addEventListener("input", () => {
-    const dB = text.value.match(/-?\d+/)[0];
-    if (!isNaN(dB)) {
+
+  text.addEventListener("input", (e) => {
+    const input = e.target.value;
+    const sanitizedInput = input.replace(/[^+\-\d]/g, "");
+    if (sanitizedInput !== input) {
+      e.target.value = sanitizedInput;
+    }
+
+    const dB = sanitizedInput.match(/-?\d+/)?.[0];
+    if (dB !== undefined) {
       const start = text.selectionStart;
       const end = text.selectionEnd;
       slider.value = dB;
