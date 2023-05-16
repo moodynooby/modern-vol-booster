@@ -8,7 +8,7 @@ function listenForEvents() {
   }
 
   function setSlider(dB) {
-    const slider = document.querySelector("#volume-slider");
+    const slider = document.querySelector("#volume-slider").focus();
     const text = document.querySelector("#volume-text");
     slider.value = dB;
     text.value = formatValue(dB);
@@ -45,12 +45,12 @@ function listenForEvents() {
   });
 
   const text = document.querySelector("#volume-text");
-  let cursorPosition = 0; // Track cursor position
+  let cursorPosition = 0;
   
   text.addEventListener("input", () => {
     const dB = text.value.match(/-?\d+/)[0];
     if (!isNaN(dB)) {
-      const start = text.selectionStart; // Get current cursor position
+      const start = text.selectionStart;
       const end = text.selectionEnd;
       slider.value = dB;
       updateVolumeValue();
@@ -59,11 +59,9 @@ function listenForEvents() {
           browser.tabs.sendMessage(tabs[0].id, { command: "setVolume", dB: dB });
         })
         .catch(err);
-      // Restore cursor position after modifying the input value
       text.setSelectionRange(start, end);
       cursorPosition = start;
     } else {
-      // Update cursor position if the input is not a valid number
       text.setSelectionRange(cursorPosition, cursorPosition);
     }
   });
