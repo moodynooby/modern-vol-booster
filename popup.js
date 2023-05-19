@@ -1,117 +1,114 @@
 function listenForEvents() {
+  let currentVolume = 0;
+
   function err(error) {
     console.error(`Volume Control: Error: ${error}`);
   }
 
   function formatValue(dB) {
-    return dB >= 0 ? `+${dB} dB` : `${dB} dB`;
+    return `${dB >= 0 ? '+' : ''}${dB} dB`;
   }
 
-  function setSlider(dB) {
-    const slider = document.querySelector("#volume-slider").focus();
+  function setVolume(dB) {
+    const slider = document.querySelector("#volume-slider");
     const text = document.querySelector("#volume-text");
     slider.value = dB;
     text.value = formatValue(dB);
+    currentVolume = dB;
+    browser.tabs.query({ active: true, currentWindow: true })
+      .then(tabs => {
+        browser.tabs.sendMessage(tabs[0].id, { command: "setVolume", dB });
+      })
+      .catch(err);
   }
 
-  function updateVolumeValue() {
+  function updateVolume() {
     const slider = document.querySelector("#volume-slider");
     const text = document.querySelector("#volume-text");
-    const dB = slider.value;
-    text.value = formatValue(dB);
+    text.value = formatValue(slider.value);
   }
 
-  function getVolume(tabs) {
-    browser.tabs.sendMessage(tabs[0].id, { command: "getVolume" })
-      .then((message) => {
-        setSlider(message.response);
-      })
-      .catch(err);
-  }
-
-  browser.tabs.query({ active: true, currentWindow: true })
-    .then(getVolume)
-    .catch(err);
-
-  const slider = document.querySelector("#volume-slider");
-  slider.addEventListener("input", () => {
-    updateVolumeValue();
-    const dB = slider.value;
-    browser.tabs.query({ active: true, currentWindow: true })
-      .then((tabs) => {
-        browser.tabs.sendMessage(tabs[0].id, { command: "setVolume", dB: dB });
-      })
-      .catch(err);
-  });
-
-  const text = document.querySelector("#volume-text");
-  let cursorPosition = 0;
-
-  text.addEventListener("input", (e) => {
-    const input = e.target.value;
-    const sanitizedInput = input.replace(/[^+\-\d]/g, "");
-    if (sanitizedInput !== input) {
-      e.target.value = sanitizedInput;
-    }
-
-    const dB = sanitizedInput.match(/-?\d+/)?.[0];
+  function updateVolumeFromText() {
+    const text = document.querySelector("#volume-text");
+    const dB = text.value.match(/-?\d+/)?.[0];
     if (dB !== undefined) {
-      const start = text.selectionStart;
-      const end = text.selectionEnd;
+      const slider = document.querySelector("#volume-slider");
       slider.value = dB;
-      updateVolumeValue();
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then((tabs) => {
-          browser.tabs.sendMessage(tabs[0].id, { command: "setVolume", dB: dB });
-        })
-        .catch(err);
-      text.setSelectionRange(start, end);
-      cursorPosition = start;
-    } else {
-      text.setSelectionRange(cursorPosition, cursorPosition);
+      updateVolume();
+      setVolume(dB);
+      text.setSelectionRange(text.selectionStart, text.selectionEnd);
     }
-  });
+  }
 
-  function getMono(tabs) {
-    browser.tabs.sendMessage(tabs[0].id, { command: "getMono" })
-      .then((message) => {
-        document.querySelector("#mono-checkbox").checked = message.response;
+  function updateVolumeFromSlider() {
+    const slider = document.querySelector("#volume-slider");
+    updateVolume();
+    setVolume(slider.value);
+  }
+
+  function toggleMono() {
+    const monoCheckbox = document.querySelector("#mono-checkbox");
+    const mono = monoCheckbox.checked;
+    browser.tabs.query({ active: true, currentWindow: true })
+      .then(tabs => {
+        browser.tabs.sendMessage(tabs[0].id, { command: "setMono", mono });
       })
       .catch(err);
   }
 
-  browser.tabs.query({ active: true, currentWindow: true })
-    .then(getMono)
-    .catch(err);
-
-  document.addEventListener("change", (e) => {
-    if (e.target.id === "mono-checkbox") {
-      const mono = e.target.checked;
-      browser.tabs.query({ active: true, currentWindow: true })
-        .then((tabs) => {
-          browser.tabs.sendMessage(tabs[0].id, { command: "setMono", mono: mono });
-        })
-        .catch(err);
+  function handleInputChange(event) {
+    if (event.target.id === "volume-text") {
+      updateVolumeFromText();
+    } else if (event.target.id === "volume-slider") {
+      updateVolumeFromSlider();
+    } else if (event.target.id === "mono-checkbox") {
+      toggleMono();
     }
-  });
+  }
+
+  function showError(error) {
+    const popupContent = document.querySelector("#popup-content");
+    const errorContent = document.querySelector("#error-content");
+    popupContent.classList.add("hidden");
+    errorContent.classList.remove("hidden");
+    console.error(`Volume Control: Error: ${error.message}`);
+  }
+
+  browser.tabs.query({ active: true, currentWindow: true })
+    .then(tabs => {
+      if (tabs.length === 0) {
+        showError("No audio playing.");
+        return;
+      }
+      browser.tabs.executeScript({ file: "cs.js" })
+        .then(() => {
+          const volumeSlider = document.querySelector("#volume-slider");
+          const volumeText = document.querySelector("#volume-text");
+          const monoCheckbox = document.querySelector("#mono-checkbox");
+
+          volumeSlider.addEventListener("input", updateVolumeFromSlider);
+          volumeSlider.addEventListener("change", updateVolumeFromSlider);
+          volumeText.addEventListener("input", updateVolumeFromText);
+          monoCheckbox.addEventListener("change", toggleMono);
+          document.addEventListener("change", handleInputChange);
+
+          volumeSlider.focus();
+
+          browser.tabs.sendMessage(tabs[0].id, { command: "getVolume" })
+            .then(response => {
+              setVolume(response.response);
+            })
+            .catch(err);
+
+          browser.tabs.sendMessage(tabs[0].id, { command: "getMono" })
+            .then(response => {
+              monoCheckbox.checked = response.response;
+            })
+            .catch(err);
+        })
+        .catch(showError);
+    })
+    .catch(showError);
 }
 
-function showError(error) {
-  document.querySelector("#popup-content").classList.add("hidden");
-  document.querySelector("#error-content").classList.remove("hidden");
-  console.error(`Volume Control: Error: ${error.message}`);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-browser.tabs.query({ active: true, currentWindow: true, audible: true })
-.then(function (tabs) {
-if (tabs.length !== 0) {
-browser.tabs.executeScript({ file: "cs.js" })
-.then(listenForEvents)
-.catch(showError);
-} else {
-showError("No audio playing.");
-}
-})
-.catch(showError);
-});
+document.addEventListener("DOMContentLoaded", listenForEvents);
