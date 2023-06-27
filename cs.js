@@ -65,6 +65,12 @@ function init(document){
     connectOutput(newElem);
   });
 
+  document.addEventListener("click", function () {
+    if (tc.vars.audioCtx.state === "suspended") {
+      tc.vars.audioCtx.resume();
+    }
+  });
+
   browser.runtime.onMessage.addListener((message) => {
     switch (message.command) {
       case "setVolume":
