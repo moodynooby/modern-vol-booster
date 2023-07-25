@@ -15,9 +15,11 @@ function listenForEvents() {
     slider.value = dB;
     text.value = formatValue(dB);
     currentVolume = dB;
-    browser.tabs.query({ active: true, currentWindow: true })
+    const browserApi = typeof browser !== 'undefined' ? browser : chrome;
+    browserApi.tabs.query({ active: true, currentWindow: true })
       .then(tabs => {
-        browser.tabs.sendMessage(tabs[0].id, { command: "setVolume", dB });
+        browserApi.tabs.sendMessage(tabs[0].id, { command: "setVolume", dB })
+          .catch(err);
       })
       .catch(err);
   }
@@ -49,9 +51,11 @@ function listenForEvents() {
   function toggleMono() {
     const monoCheckbox = document.querySelector("#mono-checkbox");
     const mono = monoCheckbox.checked;
-    browser.tabs.query({ active: true, currentWindow: true })
+    const browserApi = typeof browser !== 'undefined' ? browser : chrome;
+    browserApi.tabs.query({ active: true, currentWindow: true })
       .then(tabs => {
-        browser.tabs.sendMessage(tabs[0].id, { command: "setMono", mono });
+        browserApi.tabs.sendMessage(tabs[0].id, { command: "setMono", mono })
+          .catch(err);
       })
       .catch(err);
   }
@@ -74,7 +78,8 @@ function listenForEvents() {
     console.error(`Volume Control: Error: ${error.message}`);
   }
 
-  browser.tabs.query({ active: true, currentWindow: true })
+  const browserApi = typeof browser !== 'undefined' ? browser : chrome;
+  browserApi.tabs.query({ active: true, currentWindow: true })
     .then(tabs => {
       if (tabs.length === 0) {
         showError("No audio playing.");
@@ -91,16 +96,23 @@ function listenForEvents() {
       document.addEventListener("change", handleInputChange);
 
       volumeSlider.focus();
-      browser.tabs
-        .sendMessage(tabs[0].id, { command: "getVolume" })
+      browserApi.tabs.sendMessage(tabs[0].id, { command: "getVolume" })
         .then((response) => {
-          setVolume(response.response);
+          if (response && response.response !== undefined) {
+            currentVolume = response.response;
+            setVolume(currentVolume);
+          } else {
+            showError("Failed to get volume information.");
+          }
         })
         .catch(err);
-      browser.tabs
-        .sendMessage(tabs[0].id, { command: "getMono" })
+      browserApi.tabs.sendMessage(tabs[0].id, { command: "getMono" })
         .then((response) => {
-          monoCheckbox.checked = response.response;
+          if (response && response.response !== undefined) {
+            monoCheckbox.checked = response.response;
+          } else {
+            showError("Failed to get mono information.");
+          }
         })
         .catch(err);
     })

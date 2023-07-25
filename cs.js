@@ -3,13 +3,13 @@ var tc = {
     logLevel: 0,
     defaultLogLevel: 4,
   },
-  vars : {
+  vars: {
     dB: 0,
     mono: false,
-    audioCtx: new AudioContext(),
-    gainNode: undefined, //defined during init
-  }
-}
+    audioCtx: new (window.AudioContext || window.webkitAudioContext)(),
+    gainNode: undefined,
+  },
+};
 
 function log(message, level) {
   const verbosity = tc.settings.logLevel;
@@ -31,7 +31,7 @@ function log(message, level) {
 
 function connectOutput(element) {
   log("Begin connectOutput", 5);
-  log("Element found " + element.toString(), 5)
+  log("Element found " + element.toString(), 5);
   tc.vars.audioCtx.createMediaElementSource(element).connect(tc.vars.gainNode);
   tc.vars.gainNode.connect(tc.vars.audioCtx.destination);
   log("End connectOutput", 5);
@@ -40,6 +40,7 @@ function connectOutput(element) {
 function setVolume(dB) {
   tc.vars.gainNode.gain.value = Math.pow(10, dB / 20);
 }
+
 function enableMono() {
   tc.vars.mono = true;
   tc.vars.gainNode.channelCountMode = "explicit";
@@ -52,7 +53,7 @@ function disableMono() {
   tc.vars.gainNode.channelCount = 2;
 }
 
-function init(document){
+function init(document) {
   log("Begin init", 5);
   if (!document.body || document.body.classList.contains("volumecontrol-initialized")) {
     log("Already initialized", 5);
@@ -71,14 +72,14 @@ function init(document){
     }
   });
 
-  browser.runtime.onMessage.addListener((message) => {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.command) {
       case "setVolume":
         tc.vars.dB = message.dB;
         setVolume(message.dB);
         break;
       case "getVolume":
-        return Promise.resolve({ response: tc.vars.dB });
+        sendResponse({ response: tc.vars.dB });
         break;
       case "setMono":
         if (message.mono) {
@@ -88,7 +89,7 @@ function init(document){
         }
         break;
       case "getMono":
-        return Promise.resolve({ response: tc.vars.mono });
+        sendResponse({ response: tc.vars.mono });
         break;
     }
   });
@@ -99,14 +100,23 @@ function init(document){
 function initWhenReady(document) {
   log("Begin initWhenReady", 5);
   window.onload = () => {
+    if (!tc.vars.audioCtx) {
+      tc.vars.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
     init(window.document);
   };
   if (document) {
     if (document.readyState === "complete") {
+      if (!tc.vars.audioCtx) {
+        tc.vars.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
       init(document);
     } else {
       document.onreadystatechange = () => {
         if (document.readyState === "complete") {
+          if (!tc.vars.audioCtx) {
+            tc.vars.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
           init(document);
         }
       };
