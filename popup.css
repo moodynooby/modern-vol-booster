@@ -38,7 +38,7 @@ input[type=range]::-webkit-slider-thumb,
 input[type=range]::-moz-range-thumb {
 	height: 30px;
 	width: 6px;
-	background: #C0C0C0;
+	background: #ccc;
 	border-radius: 0;
 }
 
