@@ -1,6 +1,6 @@
 html, body {
 	width: 400px;
-	font-size: 16px;
+	font-size: 18px;
 }
 
 .hidden {
@@ -91,4 +91,5 @@ input:checked + .slider:before {
 	border: none;
 	background-color: transparent;
 	text-align: center;
+	font-size: 18px;
 }
