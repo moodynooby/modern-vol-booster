@@ -11,27 +11,17 @@ var tc = {
   },
 };
 
-function log(message, level) {
-  const verbosity = tc.settings.logLevel;
-  if (typeof level === "undefined") {
-    level = tc.settings.defaultLogLevel;
-  }
-  if (verbosity >= level) {
-    if (level === 2) {
-      console.log("ERROR:" + message);
-    } else if (level === 3) {
-      console.log("WARNING:" + message);
-    } else if (level === 4) {
-      console.log("INFO:" + message);
-    } else if (level === 5) {
-      console.log("DEBUG:" + message);
-    }
+const logTypes = ["ERROR", "WARNING", "INFO", "DEBUG"];
+
+function log(message, level = tc.settings.defaultLogLevel) {
+  if (tc.settings.logLevel >= level) {
+    console.log(`${logTypes[level - 2]}: ${message}`);
   }
 }
 
 function connectOutput(element) {
   log("Begin connectOutput", 5);
-  log("Element found " + element.toString(), 5);
+  log(`Element found ${element.toString()}`, 5);
   tc.vars.audioCtx.createMediaElementSource(element).connect(tc.vars.gainNode);
   tc.vars.gainNode.connect(tc.vars.audioCtx.destination);
   log("End connectOutput", 5);
@@ -58,6 +48,9 @@ function init(document) {
   if (!document.body || document.body.classList.contains("volumecontrol-initialized")) {
     log("Already initialized", 5);
     return;
+  }
+  if (!tc.vars.audioCtx) {
+    tc.vars.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
   tc.vars.gainNode = tc.vars.audioCtx.createGain();
   tc.vars.gainNode.channelInterpretation = "speakers";

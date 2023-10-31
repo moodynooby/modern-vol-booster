@@ -1,6 +1,8 @@
 function listenForEvents() {
   let currentVolume = 0;
 
+  const browserApi = (typeof browser !== 'undefined') ? browser : chrome;
+
   function err(error) {
     console.error(`Volume Control: Error: ${error}`);
   }
@@ -15,7 +17,6 @@ function listenForEvents() {
     slider.value = dB;
     text.value = formatValue(dB);
     currentVolume = dB;
-    const browserApi = typeof browser !== 'undefined' ? browser : chrome;
     browserApi.tabs.query({ active: true, currentWindow: true })
       .then(tabs => {
         browserApi.tabs.sendMessage(tabs[0].id, { command: "setVolume", dB })
@@ -51,7 +52,6 @@ function listenForEvents() {
   function toggleMono() {
     const monoCheckbox = document.querySelector("#mono-checkbox");
     const mono = monoCheckbox.checked;
-    const browserApi = typeof browser !== 'undefined' ? browser : chrome;
     browserApi.tabs.query({ active: true, currentWindow: true })
       .then(tabs => {
         browserApi.tabs.sendMessage(tabs[0].id, { command: "setMono", mono })
@@ -78,7 +78,6 @@ function listenForEvents() {
     console.error(`Volume Control: Error: ${error.message}`);
   }
 
-  const browserApi = typeof browser !== 'undefined' ? browser : chrome;
   browserApi.tabs.query({ active: true, currentWindow: true })
     .then(tabs => {
       if (tabs.length === 0) {
