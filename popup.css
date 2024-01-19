@@ -16,6 +16,10 @@ html, body {
 }
 
 input[type=range] {
+	-webkit-appearance: none;
+	-webkit-width: 90%;
+	-webkit-transform: translateX(-2%);	
+	-moz-transform: translateX(0%);
 	width: 100%;
 	margin: 10px 0;
 }
@@ -26,6 +30,7 @@ input[type=range]:focus {
 
 input[type=range]::-webkit-slider-runnable-track,
 input[type=range]::-moz-range-track {
+	-webkit-appearance: none;
 	width: 100%;
 	height: 10px;
 	cursor: pointer;
@@ -87,6 +92,8 @@ input:checked + .slider:before {
 }
 
 #volume-text {
+	-webkit-transform: translateX(-2%);	
+	-moz-transform: translateX(0%);
 	width: auto;
 	border: none;
 	background-color: transparent;
