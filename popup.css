@@ -16,7 +16,6 @@ html, body {
 }
 
 input[type=range] {
-	-webkit-appearance: none;
 	-webkit-width: 90%;
 	-webkit-transform: translateX(-2%);	
 	-moz-transform: translateX(0%);
@@ -30,7 +29,6 @@ input[type=range]:focus {
 
 input[type=range]::-webkit-slider-runnable-track,
 input[type=range]::-moz-range-track {
-	-webkit-appearance: none;
 	width: 100%;
 	height: 10px;
 	cursor: pointer;
