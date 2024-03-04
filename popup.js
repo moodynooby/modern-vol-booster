@@ -1,3 +1,12 @@
+document.addEventListener('DOMContentLoaded', () => {
+  function settings() {
+    browser.runtime.openOptionsPage().catch((error) => {
+      console.error('Error opening options page:', error);
+    });
+  }
+  
+  document.getElementById('settings').addEventListener('click', settings);
+});
 function listenForEvents() {
   let currentVolume = 0;
 
