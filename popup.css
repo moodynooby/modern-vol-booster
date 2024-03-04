@@ -2,19 +2,15 @@ html, body {
 	width: 400px;
 	font-size: 18px;
 }
-
 .hidden {
 	display: none;
 }
-
 .center {
 	text-align: center;
 }
-
 .left {
 	text-align: left;
 }
-
 input[type=range] {
 	-webkit-width: 90%;
 	-webkit-transform: translateX(-2%);	
@@ -22,11 +18,9 @@ input[type=range] {
 	width: 100%;
 	margin: 10px 0;
 }
-
 input[type=range]:focus {
 	outline: none;
 }
-
 input[type=range]::-webkit-slider-runnable-track,
 input[type=range]::-moz-range-track {
 	width: 100%;
@@ -37,7 +31,6 @@ input[type=range]::-moz-range-track {
 	border-radius: 25px;
 	border: 0.5px solid #000101;
 }
-
 input[type=range]::-webkit-slider-thumb,
 input[type=range]::-moz-range-thumb {
 	height: 30px;
@@ -45,20 +38,17 @@ input[type=range]::-moz-range-thumb {
 	background: #ccc;
 	border-radius: 0;
 }
-
 .switch {
 	position: relative;
 	display: inline-block;
 	width: 40px;
 	height: 24px;
 }
-
 .switch input {
 	opacity: 0;
 	width: 0;
 	height: 0;
 }
-
 .slider {
 	position: absolute;
 	cursor: pointer;
@@ -69,7 +59,6 @@ input[type=range]::-moz-range-thumb {
 	background-color: #ccc;
 	transition: .4s;
 }
-
 .slider:before {
 	position: absolute;
 	content: "";
@@ -80,15 +69,12 @@ input[type=range]::-moz-range-thumb {
 	background-color: white;
 	transition: .4s;
 }
-
 input:checked + .slider {
 	background-color: #000;
 }
-
 input:checked + .slider:before {
 	transform: translateX(16px);
 }
-
 #volume-text {
 	-webkit-transform: translateX(-2%);	
 	-moz-transform: translateX(0%);
@@ -97,4 +83,19 @@ input:checked + .slider:before {
 	background-color: transparent;
 	text-align: center;
 	font-size: 18px;
+}
+.settings {
+    font-size: 18px;
+    color: gray;
+    background-color: transparent;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+}
+.controls {
+    display: flex;
+    align-items: center;
+}
+.right {
+    margin-left: auto;
 }
