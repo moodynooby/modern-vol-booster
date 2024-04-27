@@ -17,7 +17,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*", "file:///*"],
-      "exclude_globs": ["https://www.shadertoy.com/],
+      "exclude_globs": ["https://www.shadertoy.com/"],
       "js": ["lib/arrive.min.js", "cs.js"],
       "all_frames": true,
       "match_about_blank": true
