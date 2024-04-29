@@ -118,4 +118,102 @@ function initWhenReady(document) {
   log("End initWhenReady", 5);
 }
 
-initWhenReady(document);
+function checkExclusion() {
+  browser.storage.local.get({ fqdns: [] }).then(data => {
+      const currentFqdn = new URL(window.location.href).hostname;
+      const normalizedFqdn = currentFqdn.startsWith("www.") ? currentFqdn : "www." + currentFqdn;
+      if (data.fqdns.includes(normalizedFqdn)) {
+          alert("This site is in the exclusion list.");
+      } else {
+          initWhenReady(document);
+      }
+  });
+}
+
+checkExclusion();
+const urlFqdnRegex = /^(https?:\/\/)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)$/i;
+
+document.getElementById('newFqdn').addEventListener('keydown', function(event) {
+  if (event.keyCode === 13) {
+    event.preventDefault();
+    const userInput = document.getElementById('newFqdn').value;
+    if (isValidURL(userInput)) {
+      const fqdn = userInput.startsWith("www.") ? userInput : "www." + userInput;
+      addFqdn(fqdn);
+    } else {
+      alert('Invalid URL or FQDN');
+    }
+    document.getElementById('newFqdn').value = '';
+  }
+});
+
+document.getElementById('addFqdn').addEventListener('click', function() {
+  const userInput = document.getElementById('newFqdn').value;
+  if (isValidURL(userInput)) {
+    const fqdn = userInput.startsWith("www.") ? userInput : "www." + userInput;
+    addFqdn(fqdn);
+  } else {
+    alert('Invalid URL or FQDN');
+  }
+  document.getElementById('newFqdn').value = '';
+});
+
+document.getElementById('fqdnList').addEventListener('click', function(e) {
+  if (e.target.classList.contains('remove-entry')) {
+    const entry = e.target.parentNode;
+    const index = entry.dataset.index;
+    const fqdn = entry.textContent.trim();
+    removeFqdn(index, fqdn);
+    entry.remove();
+  }
+});
+
+function addFqdn(fqdn) {
+  browser.storage.local.get({ fqdns: [] })
+      .then(data => {
+          const { fqdns } = data;
+          if (!fqdns.includes(fqdn)) {
+              fqdns.push(fqdn);
+              browser.storage.local.set({ fqdns }).then(updateFqdnList);
+          }
+      });
+}
+
+function removeFqdn(index, fqdn) {
+  browser.storage.local.get({ fqdns: [] })
+      .then(data => {
+          const { fqdns } = data;
+          fqdns.splice(index, 1); 
+          return browser.storage.local.set({ fqdns });
+      })
+      .then(() => {
+          updateFqdnList(); 
+      })
+      .catch(error => {
+          console.error('Error removing FQDN:', error);
+      });
+}
+
+function isValidURL(urlString) {
+  return urlFqdnRegex.test(urlString);
+}
+
+function updateFqdnList() {
+  browser.storage.local.get({ fqdns: [] }).then(data => {
+      const fqdnList = document.getElementById('fqdnList');
+      fqdnList.innerHTML = '';
+      data.fqdns.forEach((fqdn, index) => { 
+          const entry = document.createElement('div');
+          entry.classList.add('fqdn-entry');
+          entry.textContent = fqdn;
+          entry.dataset.index = index; 
+          const removeButton = document.createElement('span');
+          removeButton.classList.add('remove-entry');
+          removeButton.textContent = 'x';
+          entry.appendChild(removeButton);
+          fqdnList.appendChild(entry);
+      });
+  });
+}
+
+updateFqdnList();

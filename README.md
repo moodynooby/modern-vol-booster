@@ -6,6 +6,10 @@
 </p>
 
 ***
+Newest update: Added Storage options, allowing the user to blacklist the extension from running on sites where the extension breaks functionality.
+
+Planned features: Added to chrome extension store,
+
 
 ⚠ Important: To add functionality to more websites, the permission "all_urls" was necessary, however with the recent update to manifest v3, it's optional. If the extension can't access audio on a certain site do the following: Right click the extension, click "manage extension", click the permission tab, allow "Access your data for all websites". This is a necessary permission to access iframes. The extension is open source and fully adheres to this repository. There's no form of analytics in this extension. So don't be afraid of the permissions.
 

@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <link rel="stylesheet" href="options.css"/>
+    </head>
 <body>
-<textarea id="blacklist" rows="5"></textarea>
-<button id="saveBlacklist">Save Blacklist</button>
-<br>
-<label for="saveVolume">Save Volume Setting:</label>
-<input type="checkbox" id="saveVolume" checked> 
-<script src="options.js"></script>
+    <div id="settings-content" class="center">
+        <input type="text" id="newFqdn" placeholder="Blacklist a site">
+        <button id="addFqdn">Add</button>
+        <div id="fqdnList" class="fqdn-box"></div>
+    </div>    
+<script src="cs.js"></script>
 </body>
 </html>
