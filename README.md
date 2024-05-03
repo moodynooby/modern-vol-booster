@@ -22,3 +22,6 @@ Planned features: Added to chrome extension store,
 
 
 Supports HTML5 video and audio only (no Flash).
+
+
+![image](https://github.com/Chaython/volumecontrol/assets/6486343/869834b4-04ba-470e-8978-c7d1b1d26ddc)
