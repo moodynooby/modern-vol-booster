@@ -1,5 +1,26 @@
+body {
+	font-family: Seravek, 'Gill Sans Nova', Ubuntu, Calibri, 'DejaVu Sans', source-sans-pro, sans-serif;
+	font-weight: normal;
+}
+
+@media (prefers-color-scheme: dark) {
+	body, input, button {
+		color: #fff;
+		background-color: #23222b;
+	}
+}
+
+input, button {
+	border: 1px solid #888;
+}
+
 .remove-entry {
 	color: red;
 	padding-left: 5px;
 	cursor: pointer;
+}
+
+.container {
+	display: block;
+	margin-bottom: 8px;
 }
