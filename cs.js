@@ -130,15 +130,28 @@ function isValidURL(urlString) {
   return urlFqdnRegex.test(urlString);
 }
 
-function checkExclusion() {
-  const defaultFqdns = ["shadertoy.com", "clips.twitch.tv", "www.twitch.tv/*/clip/*"]; // Default sites to block
-  browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
-    if (data.fqdns.length === 0) {
-      browser.storage.local.set({ fqdns: defaultFqdns }).then(() => {
-        updateFqdnList();
+function initializeFqdnList() {
+  const defaultFqdns = ["shadertoy.com", "clips.twitch.tv", "www.twitch.tv/*/clip/*"]; // Default and new FQDNs
+  browser.storage.local.get({ fqdns: [] }).then(data => {
+    const { fqdns } = data;
+
+    // Merge existing FQDNs with default FQDNs, ensuring no duplicates
+    const updatedFqdns = [...new Set([...fqdns, ...defaultFqdns])];
+
+    // Save the updated FQDN list if changes were made
+    if (updatedFqdns.length > fqdns.length) {
+      browser.storage.local.set({ fqdns: updatedFqdns }).then(() => {
+        log("FQDN list initialized/updated with default and new URLs", 5);
+        updateFqdnList(); // Update the UI if needed
       });
     }
+  });
+}
 
+function checkExclusion() {
+  initializeFqdnList(); // Ensure the FQDN list is up-to-date
+
+  browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
     const currentUrl = new URL(window.location.href);
     const fqdn = extractRootDomain(currentUrl.href);
 
