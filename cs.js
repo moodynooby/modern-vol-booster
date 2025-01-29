@@ -118,44 +118,60 @@ function initWhenReady(document) {
   log("End initWhenReady", 5);
 }
 
+function extractRootDomain(url) {
+  let domain = url.replace(/^(https?|ftp):\/\/(www\.)?/, '');
+  domain = domain.split('/')[0];
+  domain = domain.split(':')[0];
+  return domain.toLowerCase();
+}
+
+function isValidURL(urlString) {
+  const urlFqdnRegex = /^((https?|ftp):\/\/)?([a-z0-9-\*\.]+\.[a-z\*]+)(:[0-9\*]{1,5})?(\/.*)?$/i;
+  return urlFqdnRegex.test(urlString);
+}
+
 function checkExclusion() {
+  const defaultFqdns = ["shadertoy.com"]; // Default site to block
   browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
-      const fqdn = new URL(window.location.href).hostname;
-      if (isFdqnBlacklisted(fqdn, data.fqdns)) {
-        if (!data.disableAlert) {
-          alert("This site is in the exclusion list.");
-        }
-      } else {
-        initWhenReady(document);
+    if (data.fqdns.length === 0) {
+      browser.storage.local.set({ fqdns: defaultFqdns }).then(() => {
+        updateFqdnList();
+      });
+    }
+
+    const fqdn = extractRootDomain(window.location.href);
+    if (isFdqnBlacklisted(fqdn, data.fqdns)) {
+      if (!data.disableAlert) {
+        alert("This site is in the exclusion list.");
       }
+    } else {
+      initWhenReady(document);
+    }
   });
 }
 
 function isFdqnBlacklisted(fqdn, blacklistedFdqns) {
   return blacklistedFdqns.some(el => {
-    const elRegexPrep = el
-      .replaceAll('.', '\\.')
-      .replaceAll('*', '.+');
-    const elRegex = new RegExp(`^${ elRegexPrep }$`, 'i');
-
-    return elRegex.test(fqdn)
+    const elRegexPrep = el.replaceAll('.', '\\.').replaceAll('*', '.+');
+    const elRegex = new RegExp(`^${elRegexPrep}$`, 'i');
+    return elRegex.test(fqdn);
   });
 }
 
 checkExclusion();
 
-document.getElementById('newFqdn')?.addEventListener('keydown', function(event) {
+document.getElementById('newFqdn')?.addEventListener('keydown', function (event) {
   if (event.key === "Enter") {
     event.preventDefault();
     addFqdn();
   }
 });
 
-document.getElementById('addFqdn')?.addEventListener('click', function() {
+document.getElementById('addFqdn')?.addEventListener('click', function () {
   addFqdn();
 });
 
-document.getElementById('fqdnList')?.addEventListener('click', function(e) {
+document.getElementById('fqdnList')?.addEventListener('click', function (e) {
   if (e.target.classList.contains('remove-entry')) {
     const entry = e.target.parentNode;
     const index = entry.dataset.index;
@@ -164,64 +180,58 @@ document.getElementById('fqdnList')?.addEventListener('click', function(e) {
   }
 });
 
-document.getElementById('disable-blacklist-alert-option')?.addEventListener('change', function(e) {
+document.getElementById('disable-blacklist-alert-option')?.addEventListener('change', function (e) {
   browser.storage.local.set({ disableAlert: e.target.checked });
-})
+});
 
 function addFqdn() {
-  const userInput = document.getElementById('newFqdn').value;
+  const userInput = document.getElementById('newFqdn').value.trim();
   if (isValidURL(userInput)) {
-    browser.storage.local.get({ fqdns: [] })
-      .then(data => {
-        const { fqdns } = data;
-        if (!fqdns.includes(userInput)) {
-          fqdns.push(userInput);
-          browser.storage.local.set({ fqdns }).then(updateFqdnList);
-        }
-      });
+    const rootDomain = extractRootDomain(userInput);
+    browser.storage.local.get({ fqdns: [] }).then(data => {
+      const { fqdns } = data;
+      if (!fqdns.includes(rootDomain)) {
+        fqdns.push(rootDomain);
+        browser.storage.local.set({ fqdns }).then(updateFqdnList);
+      }
+    });
   } else {
     alert('Invalid URL or FQDN');
   }
-
   document.getElementById('newFqdn').value = '';
 }
 
 function removeFqdn(index) {
   browser.storage.local.get({ fqdns: [] })
-      .then(data => {
-          const { fqdns } = data;
-          fqdns.splice(index, 1); 
-          return browser.storage.local.set({ fqdns });
-      })
-      .then(() => {
-          updateFqdnList();
-      })
-      .catch(error => {
-          console.error('Error removing FQDN:', error);
-      });
-}
-
-function isValidURL(urlString) {
-  const urlFqdnRegex = /^(https?:\/\/)?([a-z0-9-\*\.]+\.[a-z\*]+(:[0-9\*]{1,5})?(\/.*)?)$/i;
-  return urlFqdnRegex.test(urlString);
+    .then(data => {
+      const { fqdns } = data;
+      fqdns.splice(index, 1);
+      return browser.storage.local.set({ fqdns });
+    })
+    .then(() => {
+      updateFqdnList();
+    })
+    .catch(error => {
+      console.error('Error removing FQDN:', error);
+    });
 }
 
 function updateFqdnList() {
   browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
-      document.getElementById('disable-blacklist-alert-option').checked = data.disableAlert;
-      const fqdnList = document.getElementById('fqdnList');
-      fqdnList.innerHTML = '';
-      data.fqdns.forEach((fqdn, index) => { 
-          const entry = document.createElement('div');
-          entry.classList.add('fqdn-entry');
-          entry.textContent = fqdn;
-          entry.dataset.index = index; 
-          const removeButton = document.createElement('span');
-          removeButton.classList.add('remove-entry');
-          removeButton.textContent = 'x';
-          entry.appendChild(removeButton);
-          fqdnList.appendChild(entry);
-      });
+    document.getElementById('disable-blacklist-alert-option').checked = data.disableAlert;
+    const fqdnList = document.getElementById('fqdnList');
+    fqdnList.innerHTML = '';
+    data.fqdns.forEach((fqdn, index) => {
+      const entry = document.createElement('div');
+      entry.classList.add('fqdn-entry');
+      entry.textContent = fqdn;
+      entry.dataset.index = index;
+      const removeButton = document.createElement('span');
+      removeButton.classList.add('remove-entry');
+      removeButton.textContent = 'x';
+      entry.appendChild(removeButton);
+      fqdnList.appendChild(entry);
+    });
   });
 }
 
