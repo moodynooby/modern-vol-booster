@@ -55,7 +55,7 @@ function init(document) {
   tc.vars.gainNode = tc.vars.audioCtx.createGain();
   tc.vars.gainNode.channelInterpretation = "speakers";
   document.querySelectorAll("audio, video").forEach(connectOutput);
-  document.arrive("audio, video", function (newElem) {
+  document.arrive?.("audio, video", function (newElem) {
     connectOutput(newElem);
   });
 
@@ -119,67 +119,74 @@ function initWhenReady(document) {
 }
 
 function checkExclusion() {
-  browser.storage.local.get({ fqdns: [] }).then(data => {
-      const currentFqdn = new URL(window.location.href).hostname;
-      const normalizedFqdn = currentFqdn.startsWith("www.") ? currentFqdn : "www." + currentFqdn;
-      if (data.fqdns.includes(normalizedFqdn)) {
+  browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
+      const fqdn = new URL(window.location.href).hostname;
+      if (isFdqnBlacklisted(fqdn, data.fqdns)) {
+        if (!data.disableAlert) {
           alert("This site is in the exclusion list.");
+        }
       } else {
-          initWhenReady(document);
+        initWhenReady(document);
       }
   });
 }
 
+function isFdqnBlacklisted(fqdn, blacklistedFdqns) {
+  return blacklistedFdqns.some(el => {
+    const elRegexPrep = el
+      .replaceAll('.', '\\.')
+      .replaceAll('*', '.+');
+    const elRegex = new RegExp(`^${ elRegexPrep }$`, 'i');
+
+    return elRegex.test(fqdn)
+  });
+}
+
 checkExclusion();
-const urlFqdnRegex = /^(https?:\/\/)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?)$/i;
 
-document.getElementById('newFqdn').addEventListener('keydown', function(event) {
-  if (event.keyCode === 13) {
+document.getElementById('newFqdn')?.addEventListener('keydown', function(event) {
+  if (event.key === "Enter") {
     event.preventDefault();
-    const userInput = document.getElementById('newFqdn').value;
-    if (isValidURL(userInput)) {
-      const fqdn = userInput.startsWith("www.") ? userInput : "www." + userInput;
-      addFqdn(fqdn);
-    } else {
-      alert('Invalid URL or FQDN');
-    }
-    document.getElementById('newFqdn').value = '';
+    addFqdn();
   }
 });
 
-document.getElementById('addFqdn').addEventListener('click', function() {
-  const userInput = document.getElementById('newFqdn').value;
-  if (isValidURL(userInput)) {
-    const fqdn = userInput.startsWith("www.") ? userInput : "www." + userInput;
-    addFqdn(fqdn);
-  } else {
-    alert('Invalid URL or FQDN');
-  }
-  document.getElementById('newFqdn').value = '';
+document.getElementById('addFqdn')?.addEventListener('click', function() {
+  addFqdn();
 });
 
-document.getElementById('fqdnList').addEventListener('click', function(e) {
+document.getElementById('fqdnList')?.addEventListener('click', function(e) {
   if (e.target.classList.contains('remove-entry')) {
     const entry = e.target.parentNode;
     const index = entry.dataset.index;
-    const fqdn = entry.textContent.trim();
-    removeFqdn(index, fqdn);
+    removeFqdn(index);
     entry.remove();
   }
 });
 
-function addFqdn(fqdn) {
-  browser.storage.local.get({ fqdns: [] })
+document.getElementById('disable-blacklist-alert-option')?.addEventListener('change', function(e) {
+  browser.storage.local.set({ disableAlert: e.target.checked });
+})
+
+function addFqdn() {
+  const userInput = document.getElementById('newFqdn').value;
+  if (isValidURL(userInput)) {
+    browser.storage.local.get({ fqdns: [] })
       .then(data => {
-          const { fqdns } = data;
-          if (!fqdns.includes(fqdn)) {
-              fqdns.push(fqdn);
-              browser.storage.local.set({ fqdns }).then(updateFqdnList);
-          }
+        const { fqdns } = data;
+        if (!fqdns.includes(userInput)) {
+          fqdns.push(userInput);
+          browser.storage.local.set({ fqdns }).then(updateFqdnList);
+        }
       });
+  } else {
+    alert('Invalid URL or FQDN');
+  }
+
+  document.getElementById('newFqdn').value = '';
 }
 
-function removeFqdn(index, fqdn) {
+function removeFqdn(index) {
   browser.storage.local.get({ fqdns: [] })
       .then(data => {
           const { fqdns } = data;
@@ -187,7 +194,7 @@ function removeFqdn(index, fqdn) {
           return browser.storage.local.set({ fqdns });
       })
       .then(() => {
-          updateFqdnList(); 
+          updateFqdnList();
       })
       .catch(error => {
           console.error('Error removing FQDN:', error);
@@ -195,11 +202,13 @@ function removeFqdn(index, fqdn) {
 }
 
 function isValidURL(urlString) {
+  const urlFqdnRegex = /^(https?:\/\/)?([a-z0-9-\*\.]+\.[a-z\*]+(:[0-9\*]{1,5})?(\/.*)?)$/i;
   return urlFqdnRegex.test(urlString);
 }
 
 function updateFqdnList() {
-  browser.storage.local.get({ fqdns: [] }).then(data => {
+  browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
+      document.getElementById('disable-blacklist-alert-option').checked = data.disableAlert;
       const fqdnList = document.getElementById('fqdnList');
       fqdnList.innerHTML = '';
       data.fqdns.forEach((fqdn, index) => { 
@@ -216,4 +225,4 @@ function updateFqdnList() {
   });
 }
 
-updateFqdnList();
+document.getElementById('newFqdn') && updateFqdnList();
