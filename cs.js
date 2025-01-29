@@ -131,7 +131,7 @@ function isValidURL(urlString) {
 }
 
 function checkExclusion() {
-  const defaultFqdns = ["shadertoy.com"]; // Default site to block
+  const defaultFqdns = ["shadertoy.com", "clips.twitch.tv", "www.twitch.tv/*/clip/*"]; // Default sites to block
   browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
     if (data.fqdns.length === 0) {
       browser.storage.local.set({ fqdns: defaultFqdns }).then(() => {
@@ -139,7 +139,25 @@ function checkExclusion() {
       });
     }
 
-    const fqdn = extractRootDomain(window.location.href);
+    const currentUrl = new URL(window.location.href);
+    const fqdn = extractRootDomain(currentUrl.href);
+
+    // Check if the URL is a Twitch clip
+    if (currentUrl.hostname === "clips.twitch.tv" || currentUrl.pathname.includes("/clip/")) {
+      // Block initialization for Twitch clips
+      log("Twitch clip detected - blocking init", 5);
+      return; // Do not call initWhenReady
+    }
+
+    // Check if the URL is a regular Twitch stream
+    if (fqdn === "twitch.tv") {
+      // Allow initialization for regular Twitch streams
+      log("Regular Twitch stream detected - allowing init", 5);
+      initWhenReady(document);
+      return;
+    }
+
+    // Handle other sites
     if (isFdqnBlacklisted(fqdn, data.fqdns)) {
       if (!data.disableAlert) {
         alert("This site is in the exclusion list.");
