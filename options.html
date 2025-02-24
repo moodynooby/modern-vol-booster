@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Volume Control Settings</title>
     <link rel="stylesheet" href="options.css"/>
 </head>
 <body>
     <div id="settings-content" class="center">
         <div class="container">
-            <input type="checkbox" name="Disable blacklist alert" id="disable-blacklist-alert-option">Disable blacklist alert
-        </div>
-        <div class="container">
-            <input type="text" id="newFqdn" placeholder="Blacklist a site">
+            <input type="text" id="newFqdn" placeholder="Enter site to blacklist" aria-label="Enter site to blacklist">
             <button id="addFqdn">Add</button>
         </div>
         <div id="fqdnList" class="fqdn-box"></div>

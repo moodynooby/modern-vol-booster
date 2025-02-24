@@ -6,11 +6,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   document.getElementById('settings').addEventListener('click', settings);
-});
-function listenForEvents() {
-  let currentVolume = 0;
 
+  // Add message listener for exclusion messages
   const browserApi = (typeof browser !== 'undefined') ? browser : chrome;
+  browserApi.runtime.onMessage.addListener((message) => {
+    if (message.type === "exclusion") {
+      showError({ type: "exclusion" });
+    }
+  });
+});
+
+function listenForEvents() {
+  const browserApi = (typeof browser !== 'undefined') ? browser : chrome;
+  
+  browserApi.tabs.query({ active: true, currentWindow: true })
+    .then(tabs => {
+      if (tabs[0].url) {
+        browserApi.tabs.sendMessage(tabs[0].id, { command: "checkExclusion" })
+          .catch(() => {
+            // If the site is excluded, show the exclusion message
+            showError({ type: "exclusion" });
+          });
+      }
+    });
+
+  let currentVolume = 0;
 
   function err(error) {
     console.error(`Volume Control: Error: ${error}`);
@@ -82,9 +102,22 @@ function listenForEvents() {
   function showError(error) {
     const popupContent = document.querySelector("#popup-content");
     const errorContent = document.querySelector("#error-content");
-    popupContent.classList.add("hidden");
-    errorContent.classList.remove("hidden");
-    console.error(`Volume Control: Error: ${error.message}`);
+    const exclusionMessage = document.querySelector(".exclusion-message");
+    const topControls = document.querySelector(".top-controls");
+    const leftControls = document.querySelector(".left");
+    
+    if (error.type === "exclusion") {
+      // Show exclusion message and hide controls
+      exclusionMessage.classList.remove("hidden");
+      topControls.classList.add("hidden");
+      leftControls.classList.add("hidden");
+      document.body.classList.add("excluded-site");
+    } else {
+      popupContent.classList.add("hidden");
+      errorContent.classList.remove("hidden");
+      errorContent.querySelector("p").textContent = error.message || "An error occurred";
+    }
+    console.error(`Volume Control: Error: ${error.message || error}`);
   }
 
   browserApi.tabs.query({ active: true, currentWindow: true })
@@ -125,6 +158,12 @@ function listenForEvents() {
         .catch(err);
     })
     .catch(showError);
+
+  browserApi.runtime.onMessage.addListener((message) => {
+    if (message.type === "exclusion") {
+      showError({ type: "exclusion" });
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", listenForEvents);

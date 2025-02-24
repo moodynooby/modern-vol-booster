@@ -45,8 +45,10 @@ function disableMono() {
 
 function init(document) {
   log("Begin init", 5);
-  if (!document.body || document.body.classList.contains("volumecontrol-initialized")) {
-    log("Already initialized", 5);
+  if (!document.body || 
+      document.body.classList.contains("volumecontrol-initialized") || 
+      sessionStorage.getItem('volumecontrol-excluded') === 'true') {
+    log("Skipping initialization", 5);
     return;
   }
   if (!tc.vars.audioCtx) {
@@ -60,7 +62,9 @@ function init(document) {
   });
 
   document.addEventListener("click", function () {
-    if (tc.vars.audioCtx.state === "suspended") {
+    if (tc.vars.audioCtx && 
+        tc.vars.audioCtx.state === "suspended" && 
+        sessionStorage.getItem('volumecontrol-excluded') !== 'true') {
       tc.vars.audioCtx.resume();
     }
   });
@@ -131,51 +135,43 @@ function isValidURL(urlString) {
 }
 
 function initializeFqdnList() {
-  const defaultFqdns = ["shadertoy.com", "clips.twitch.tv", "www.twitch.tv/*/clip/*"]; // Default and new FQDNs
+  const defaultFqdns = ["shadertoy.com", "clips.twitch.tv", "www.twitch.tv/*/clip/*"];
   browser.storage.local.get({ fqdns: [] }).then(data => {
     const { fqdns } = data;
-
-    // Merge existing FQDNs with default FQDNs, ensuring no duplicates
     const updatedFqdns = [...new Set([...fqdns, ...defaultFqdns])];
-
-    // Save the updated FQDN list if changes were made
     if (updatedFqdns.length > fqdns.length) {
       browser.storage.local.set({ fqdns: updatedFqdns }).then(() => {
-        log("FQDN list initialized/updated with default and new URLs", 5);
-        updateFqdnList(); // Update the UI if needed
+        log("FQDN list initialized/updated", 5);
+        updateFqdnList();
       });
     }
   });
 }
 
 function checkExclusion() {
-  initializeFqdnList(); // Ensure the FQDN list is up-to-date
+  initializeFqdnList();
 
-  browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
+  browser.storage.local.get({ fqdns: [] }).then(data => {
     const currentUrl = new URL(window.location.href);
     const fqdn = extractRootDomain(currentUrl.href);
 
-    // Check if the URL is a Twitch clip
-    if (currentUrl.hostname === "clips.twitch.tv" || currentUrl.pathname.includes("/clip/")) {
-      // Block initialization for Twitch clips
-      log("Twitch clip detected - blocking init", 5);
-      return; // Do not call initWhenReady
+    // Store exclusion state in session storage
+    if (currentUrl.hostname === "clips.twitch.tv" || 
+        currentUrl.pathname.includes("/clip/") ||
+        isFdqnBlacklisted(fqdn, data.fqdns)) {
+      sessionStorage.setItem('volumecontrol-excluded', 'true');
+      browser.runtime.sendMessage({ type: "exclusion" });
+      return;
     }
 
-    // Check if the URL is a regular Twitch stream
     if (fqdn === "twitch.tv") {
-      // Allow initialization for regular Twitch streams
-      log("Regular Twitch stream detected - allowing init", 5);
+      sessionStorage.setItem('volumecontrol-excluded', 'false');
       initWhenReady(document);
       return;
     }
 
-    // Handle other sites
-    if (isFdqnBlacklisted(fqdn, data.fqdns)) {
-      if (!data.disableAlert) {
-        alert("This site is in the exclusion list.");
-      }
-    } else {
+    // Only initialize if not excluded
+    if (!sessionStorage.getItem('volumecontrol-excluded')) {
       initWhenReady(document);
     }
   });
@@ -211,10 +207,6 @@ document.getElementById('fqdnList')?.addEventListener('click', function (e) {
   }
 });
 
-document.getElementById('disable-blacklist-alert-option')?.addEventListener('change', function (e) {
-  browser.storage.local.set({ disableAlert: e.target.checked });
-});
-
 function addFqdn() {
   const userInput = document.getElementById('newFqdn').value.trim();
   if (isValidURL(userInput)) {
@@ -248,8 +240,7 @@ function removeFqdn(index) {
 }
 
 function updateFqdnList() {
-  browser.storage.local.get({ fqdns: [], disableAlert: false }).then(data => {
-    document.getElementById('disable-blacklist-alert-option').checked = data.disableAlert;
+  browser.storage.local.get({ fqdns: [] }).then(data => {
     const fqdnList = document.getElementById('fqdnList');
     fqdnList.innerHTML = '';
     data.fqdns.forEach((fqdn, index) => {
