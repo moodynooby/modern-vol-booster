@@ -26,4 +26,6 @@ Supports HTML5 video and audio only (no Flash).
 ***
 ![image](https://github.com/Chaython/volumecontrol/assets/6486343/869834b4-04ba-470e-8978-c7d1b1d26ddc)
 
-Other Useful Extensions: https://github.com/Chaython/TogglePIP (Allow a site to run PIP consistently with an [Left Alt]+[P] toggle.)
+Other Useful Extensions: 
+https://github.com/Chaython/TogglePIP (Allow a site to run PIP consistently with an [Left Alt]+[P] toggle.)
+https://github.com/Chaython/NTP (A NTP extension that offers custom shapes, colors, search providers....)
