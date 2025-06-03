@@ -1,0 +1,153 @@
+:root {
+  --default: #fff;
+  --txt: #23222b;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --default: #23222b;
+    --txt: #fff;
+    color-scheme: dark;
+  }
+}
+html,
+body {
+  width: 400px;
+  font-size: 18px;
+  max-width: min-content;
+  max-height: min-content;
+}
+
+.hidden {
+  display: none !important;
+}
+.center {
+  text-align: center;
+}
+.left {
+  text-align: left;
+}
+#mono-checkbox {
+  border: var(--default);
+  color: var(--txt);
+}
+input[type="range"] {
+  -webkit-width: 100%;
+  width: 400px;
+  margin: 10px 0;
+  box-sizing: border-box;
+}
+
+input[type="range"]::-webkit-slider-runnable-track,
+input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 10px;
+}
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-thumb {
+  height: 30px;
+  width: 6px;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 24px;
+  margin-left: 10px;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: 0.4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  transition: 0.4s;
+}
+
+#volume-text {
+  -webkit-transform: none;
+  -moz-transform: none;
+  transform: none;
+  width: auto;
+  border: none;
+  text-align: center;
+  font-size: 18px;
+}
+.settings {
+  font-size: 18px;
+  color: var(--txt);
+  border: none;
+  padding: 5px;
+  cursor: pointer;
+}
+.controls {
+  display: flex;
+  align-items: center;
+}
+.right {
+  margin-left: auto;
+}
+
+.top-controls,
+.bot-controls {
+  display: flex;
+  align-items: center;
+}
+
+.bot-controls .right {
+  margin-left: auto;
+}
+
+.top-controls {
+  flex-direction: column;
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.exclusion-message {
+  text-align: center;
+  padding: 10px;
+  color: var(--txt);
+  max-width: fit-content;
+  width: 100px;
+  box-sizing: border-box;
+  background-color: var(--default);
+  margin-bottom: 10px;
+}
+
+.error-visible .top-controls,
+.error-visible .left {
+  display: none;
+}
+
+.excluded-site .exclusion-message {
+  display: block !important;
+}
+
+.excluded-site .top-controls,
+.excluded-site .left {
+  display: none !important;
+}
+
+.remove-entry {
+  color: red;
+  padding-left: 5px;
+  cursor: pointer;
+}
+
+.container {
+  display: block;
+  margin-bottom: 8px;
+}
