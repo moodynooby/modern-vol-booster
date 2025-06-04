@@ -1,17 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Volume Control",
-  "version": "4",
-  "description": "Adds a volume control for the current site, that can also boost the volume beyond the normal range.",
-  "homepage_url": "https://github.com/Chaython/volumecontrol",
+  "name": "BoomSlider",
+  "version": "1",
+  "description": "Modern Volume Boost or Reduce Volume MORE then the limit.",
+  "homepage_url": "https://github.com/moodynooby/modern-vol-booster",
   "icons": {
-    "96": "ico.svg"
+    "96": "icon.svg"
   },
   "optional_permissions": ["<all_urls>", "activeTab"],
   "permissions": ["storage", "activeTab"],
   "action": {
-    "default_icon": "ico.svg",
-    "default_title": "Volume Control",
+    "default_icon": "icon.svg",
+    "default_title": "BoomSlider",
     "default_popup": "popup.html"
   },
   "content_scripts": [
