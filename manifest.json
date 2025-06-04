@@ -17,7 +17,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*", "file:///*"],
-      "js": ["lib/arrive.min.js", "cs.js"],
+      "js": ["cs.js"],
       "all_frames": true,
       "match_about_blank": true
     }
