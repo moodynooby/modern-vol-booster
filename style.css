@@ -2,6 +2,7 @@
   --default: #fff;
   --txt: #23222b;
   color-scheme: light;
+  --radius: 10px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -16,8 +17,12 @@ body {
   font-size: 18px;
   max-width: min-content;
   max-height: min-content;
+  padding: 5px;
+  filter: saturate(300%) brightness(100%) hue-rotate(180deg);
 }
-
+.exclusion-message {
+  border-radius: var(--radius);
+}
 .hidden {
   display: none !important;
 }
@@ -30,6 +35,17 @@ body {
 #mono-checkbox {
   border: var(--default);
   color: var(--txt);
+  border-radius: 200px;
+  cursor: pointer;
+}
+
+.switch-container {
+  background-color: var(--default);
+  border-radius: var(--radius);
+  padding: 5px;
+}
+input {
+  border-radius: var(--radius);
 }
 input[type="range"] {
   -webkit-width: 100%;
@@ -53,7 +69,6 @@ input[type="range"]::-moz-range-thumb {
   display: inline-block;
   width: 40px;
   height: 24px;
-  margin-left: 10px;
 }
 
 .slider {
@@ -64,6 +79,11 @@ input[type="range"]::-moz-range-thumb {
   right: 0;
   bottom: 0;
   transition: 0.4s;
+  border-radius: var(--radius);
+}
+
+button {
+  border-radius: var(--radius);
 }
 .slider:before {
   position: absolute;
@@ -84,6 +104,14 @@ input[type="range"]::-moz-range-thumb {
   text-align: center;
   font-size: 18px;
 }
+#volume-text:active {
+  background-color: invert(var(--default));
+  animation: pulse 0.5s ease-in-out forwards;
+  border-radius: 0px;
+  outline: invert;
+  color: invert(var(--txt));
+}
+
 .settings {
   font-size: 18px;
   color: var(--txt);
@@ -108,7 +136,9 @@ input[type="range"]::-moz-range-thumb {
 .bot-controls .right {
   margin-left: auto;
 }
-
+.bot-controls {
+  margin-top: 5px;
+}
 .top-controls {
   flex-direction: column;
   width: 100%;
